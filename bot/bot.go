@@ -23,12 +23,14 @@ func threadNeedsName(session disgord.Session, channelID disgord.Snowflake, usage
 	if err != nil {
 		log.Error(err)
 	}
+	// _, err := session.Channel(channelID).)
 }
 
 func Start() {
 	client := disgord.New(disgord.Config{
 		BotToken: os.Getenv("DISCORD_TOKEN"),
 		Logger:   log,
+
 		RejectEvents: []string{
 			disgord.EvtThreadCreate,
 			disgord.EvtThreadUpdate,
@@ -47,7 +49,7 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			threadNeedsName(session, evt.Message.ChannelID, "$makethread my-awesome-thread-name")
+			threadNeedsName(session, evt.Message.ChannelID, "!chat need a name")
 		} else {
 			threadName := strs[1]
 			thread, err := session.Channel(evt.Message.ChannelID).CreateThread(evt.Message.ID, &disgord.CreateThreadParams{
