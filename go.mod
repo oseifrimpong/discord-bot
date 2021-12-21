@@ -3,7 +3,7 @@ module discussion-bot
 go 1.17
 
 require (
-	github.com/andersfylling/disgord v0.29.0
+	github.com/andersfylling/disgord v0.29.1-0.20211127201629-b3bc81526720
 	github.com/sirupsen/logrus v1.8.1
 )
 
@@ -18,4 +18,4 @@ require (
 	nhooyr.io/websocket v1.8.7 // indirect
 )
 
-replace github.com/andersfylling/disgord => ./disgord
+// replace github.com/andersfylling/disgord => ./disgord
