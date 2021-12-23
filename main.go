@@ -1,7 +1,7 @@
 package main
 
 import (
-	"discussion-bot/bot"
+	"discussion-bot/cmd/bot"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -12,9 +12,5 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
 	bot.Start()
-
-	<-make(chan struct{})
-	return
 }
