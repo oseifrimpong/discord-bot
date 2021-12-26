@@ -1,0 +1,13 @@
+version: "3"
+services:
+  discussion-bot:
+    build:
+      context: ..
+      dockerfile: ./deploy/docker/Dockerfile
+    container_name: discussion-bot
+    env_file:
+      ../.env
+    networks:
+      discussion-bot-network:
+networks:
+  discussion-bot-network: null
