@@ -10,7 +10,7 @@ start:
 	
 		
 stop:
-	@echo "Stopping Backend..."
+	@echo "Stopping discussion-bot..."
 	@sh ./deploy/scripts/down.sh
 
 	

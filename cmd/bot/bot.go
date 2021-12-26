@@ -59,7 +59,7 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 			}
 			_ = session.Channel(thread.ID).AddThreadMember(evt.Message.Author.ID)
 
-			userID := getUserID(strs[1])
+			userID := convertStringtoSnowflake(strs[1])
 
 			_ = session.Channel(thread.ID).AddThreadMember(userID)
 			_, err = session.Channel(thread.ID).CreateMessage(&disgord.CreateMessageParams{Content: "Lets trade!"})
@@ -68,18 +68,24 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 			}
 		}
 	case "!leave":
-		log.Info(evt.Message.Author.Username, " is the closing thread")
+		log.Info(evt.Message.Author.Username, " is leaving thread")
 		err := session.Channel(evt.Message.ChannelID).RemoveThreadMember(evt.Message.Author.ID)
 		if err != nil {
 			log.Error(errors.New("failed to leave thread"+" || "), err)
 		}
 
 	case "!help":
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{
+			Content: "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n!help: Show this message.",
+		})
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 }
 
-func getUserID(userIDStr string) snowflake.Snowflake {
+func convertStringtoSnowflake(userIDStr string) snowflake.Snowflake {
 	rx := regexp.MustCompile(`[-]?\d[\d,]*[\.]?[\d{2}]*`)
 
 	match := rx.FindAllString(userIDStr, -1)
