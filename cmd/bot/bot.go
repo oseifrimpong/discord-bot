@@ -46,7 +46,7 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 		if len(strs[1:]) == 0 {
 			threadNeedsName(session, evt.Message.ChannelID, "!chat: You need to specify the user you want to chat with.")
 		} else {
-			log.Info(strs[1:])
+			log.Info("Opening chat with user: ", strs[1])
 			thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
 				Name:                "MP TRADE",
 				AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
@@ -68,7 +68,7 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 			}
 		}
 	case "!leave":
-		log.Info("closing thread")
+		log.Info(evt.Message.Author.Username, " is the closing thread")
 		err := session.Channel(evt.Message.ChannelID).RemoveThreadMember(evt.Message.Author.ID)
 		if err != nil {
 			log.Error(errors.New("failed to leave thread"+" || "), err)
