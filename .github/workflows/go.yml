@@ -24,6 +24,11 @@ jobs:
     - name: Test
       run: go test -v ./...
 
+    - name: Extract Branch
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+      
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
