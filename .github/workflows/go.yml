@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [main, "feature/workflows"]
+    branches: [main, "feature-workflows"]
   pull_request:
     branches: [ develop ]
 
