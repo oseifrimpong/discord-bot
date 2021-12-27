@@ -31,3 +31,10 @@ Once bot is installed and running in Discord, you can use it in any channel of t
 - Use command `!help` to see the list of commands.
 - To start a new private thread, type `!chat @username`.
 - To leave the thread, type `!leave`.
+
+## Improvements
+
+- Don't open multiple threads with the same members. Either close the old thread or redirect them to the old one. \n
+Or simply notifying them to close existing thread before opening a new one.
+
+- Notify the members when the thread is about to expire (Does this feature exist in Discord? Investigation needed.).

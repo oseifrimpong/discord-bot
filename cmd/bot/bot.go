@@ -2,7 +2,6 @@ package bot
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -17,7 +16,7 @@ var log = &logrus.Logger{
 	Out:       os.Stderr,
 	Formatter: new(logrus.TextFormatter),
 	Hooks:     make(logrus.LevelHooks),
-	Level:     logrus.InfoLevel,
+	Level:     logrus.ErrorLevel,
 }
 
 func Start() {
@@ -30,9 +29,9 @@ func Start() {
 	client.Gateway().MessageCreate(msgHandler)
 }
 
-func threadNeedsName(session disgord.Session, channelID disgord.Snowflake, usageText string) {
+func threadNeedsAUserName(session disgord.Session, channelID disgord.Snowflake, usageText string) {
 	_, err := session.Channel(channelID).CreateMessage(&disgord.CreateMessageParams{
-		Content: fmt.Sprintf("Thread name is a required input. Usage: `%s`", usageText),
+		Content: usageText,
 	})
 	if err != nil {
 		log.Error(err)
@@ -44,27 +43,11 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			threadNeedsName(session, evt.Message.ChannelID, "!chat: You need to specify the user you want to chat with.")
+			threadNeedsAUserName(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n!help: Show this message.")
 		} else {
-			log.Info("Opening chat with user: ", strs[1])
-			thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
-				Name:                "MP TRADE",
-				AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
-				Type:                disgord.ChannelTypeGuildPublicThread,
-				// Type:                disgord.ChannelTypeGuildPrivateThread,
-				Invitable: true,
-			})
+			err := createPrivateThread(session, evt, strs[1])
 			if err != nil {
-				log.Error(err)
-			}
-			_ = session.Channel(thread.ID).AddThreadMember(evt.Message.Author.ID)
-
-			userID := convertStringtoSnowflake(strs[1])
-
-			_ = session.Channel(thread.ID).AddThreadMember(userID)
-			_, err = session.Channel(thread.ID).CreateMessage(&disgord.CreateMessageParams{Content: "Lets trade!"})
-			if err != nil {
-				log.Error(err)
+				log.Error("Creating private thread failed", err)
 			}
 		}
 	case "!leave":
@@ -79,23 +62,59 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 			Content: "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n!help: Show this message.",
 		})
 		if err != nil {
-			log.Error(err)
+			log.Error("Error creating help message: ", err)
 		}
 	}
 
+}
+
+func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
+	log.Info("Opening chat with user: ", userB)
+	thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
+		Name:                "MP TRADE",
+		AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
+		Type:                disgord.ChannelTypeGuildPublicThread,
+		// Type:                disgord.ChannelTypeGuildPrivateThread,
+		Invitable: true,
+	})
+	if err != nil {
+		log.Error("Error creating thread: ", err)
+		return err
+	}
+
+	err = session.Channel(thread.ID).AddThreadMember(evt.Message.Author.ID)
+	if err != nil {
+		log.Error("Error adding user A to thread: ", err)
+		return err
+	}
+
+	userID := convertStringtoSnowflake(userB)
+
+	err = session.Channel(thread.ID).AddThreadMember(userID)
+	if err != nil {
+		log.Error("Error adding user B to thread: ", err)
+		return err
+	}
+
+	_, err = session.Channel(thread.ID).CreateMessage(&disgord.CreateMessageParams{Content: "Lets trade!"})
+	if err != nil {
+		log.Error("Error creating message: ", err)
+		return err
+	}
+
+	return nil
 }
 
 func convertStringtoSnowflake(userIDStr string) snowflake.Snowflake {
 	rx := regexp.MustCompile(`[-]?\d[\d,]*[\.]?[\d{2}]*`)
 
 	match := rx.FindAllString(userIDStr, -1)
-	var element string
+	var userID snowflake.Snowflake
 	for _, element := range match {
 		log.Info(element)
+		number, _ := strconv.ParseUint(element, 10, 64)
+		userID = snowflake.NewSnowflake(number)
 	}
-
-	number, _ := strconv.ParseUint(element, 10, 64)
-	userID := snowflake.NewSnowflake(number)
 
 	return userID
 }
