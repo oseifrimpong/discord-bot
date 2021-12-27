@@ -36,7 +36,7 @@ jobs:
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: discdiscussion-bot
+        ECR_REPOSITORY: discussion-bot
         IMAGE_TAG: ${{ steps.extract_branch.outputs.branch }}
       run: |
         docker build -f deploy/docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
