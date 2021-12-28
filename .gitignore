@@ -1,7 +1,7 @@
 
 # Created by https://www.toptal.com/developers/gitignore/api/dotenv,visualstudiocode,go,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotenv,visualstudiocode,go,macos
-
+#
 ### dotenv ###
 .env
 
