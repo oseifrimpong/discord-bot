@@ -43,7 +43,7 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			threadNeedsAUserName(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n!help: Show this message.")
+			threadNeedsAUserName(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
 		} else {
 			err := createPrivateThread(session, evt, strs[1])
 			if err != nil {
@@ -56,23 +56,11 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 		if err != nil {
 			log.Error(errors.New("failed to leave thread"+" || "), err)
 		}
-	default:
-		log.Info("Unknown command: ", strs[0])
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{
-			Content: "Unknown command: " + strs[0],
-		})
+		_, err = session.Channel(evt.Message.ChannelID).Delete()
 		if err != nil {
-			log.Error(err)
+			log.Error(errors.New("failed to delete channel"+" || "), err)
 		}
 	}
-	// case "!help":
-	// gt, err := session.Channel(evt.Message.ChannelID).GetPrivateArchivedThreads(&disgord.GetThreadsParams{
-	// 	Limit: 1,
-	// })
-	// if err != nil {
-	// 	log.Error("Error creating help message: ", err)
-	// }
-
 }
 
 func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
