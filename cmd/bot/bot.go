@@ -1,14 +1,12 @@
 package bot
 
 import (
+	"discussion-bot/internal"
 	"errors"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/andersfylling/disgord"
-	"github.com/andersfylling/snowflake/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,21 +27,12 @@ func Start() {
 	client.Gateway().MessageCreate(msgHandler)
 }
 
-func threadNeedsAUserName(session disgord.Session, channelID disgord.Snowflake, usageText string) {
-	_, err := session.Channel(channelID).CreateMessage(&disgord.CreateMessageParams{
-		Content: usageText,
-	})
-	if err != nil {
-		log.Error(err)
-	}
-}
-
 func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 	strs := strings.Split(evt.Message.Content, " ")
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			threadNeedsAUserName(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
+			response(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
 		} else {
 			err := createPrivateThread(session, evt, strs[1])
 			if err != nil {
@@ -60,6 +49,12 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 		if err != nil {
 			log.Error(errors.New("failed to delete channel"+" || "), err)
 		}
+	case "!WL":
+		if len(strs[1:]) == 0 {
+			response(session, evt.Message.ChannelID, "!WL: Check WL\n")
+		} else {
+		}
+		log.Info("WL")
 	}
 }
 
@@ -83,7 +78,7 @@ func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, us
 		return err
 	}
 
-	userID := convertStringtoSnowflake(userB)
+	userID := internal.ConvertStringtoSnowflake(userB)
 
 	err = session.Channel(thread.ID).AddThreadMember(userID)
 	if err != nil {
@@ -100,16 +95,11 @@ func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, us
 	return nil
 }
 
-func convertStringtoSnowflake(userIDStr string) snowflake.Snowflake {
-	rx := regexp.MustCompile(`[-]?\d[\d,]*[\.]?[\d{2}]*`)
-
-	match := rx.FindAllString(userIDStr, -1)
-	var userID snowflake.Snowflake
-	for _, element := range match {
-		log.Info(element)
-		number, _ := strconv.ParseUint(element, 10, 64)
-		userID = snowflake.NewSnowflake(number)
+func response(session disgord.Session, channelID disgord.Snowflake, usageText string) {
+	_, err := session.Channel(channelID).CreateMessage(&disgord.CreateMessageParams{
+		Content: usageText,
+	})
+	if err != nil {
+		log.Error(err)
 	}
-
-	return userID
 }
