@@ -24,17 +24,17 @@ func Start() {
 		LoadMembersQuietly: true,
 	})
 	defer client.Gateway().StayConnectedUntilInterrupted()
-	client.Gateway().MessageCreate(msgHandler)
+	client.Gateway().MessageCreate(handler)
 }
 
-func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
+func handler(session disgord.Session, evt *disgord.MessageCreate) {
 	strs := strings.Split(evt.Message.Content, " ")
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			response(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
+			internal.Response(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
 		} else {
-			err := createPrivateThread(session, evt, strs[1])
+			err := internal.CreatePrivateThread(session, evt, strs[1])
 			if err != nil {
 				log.Error("Creating private thread failed", err)
 			}
@@ -51,55 +51,13 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 		}
 	case "!WL":
 		if len(strs[1:]) == 0 {
-			response(session, evt.Message.ChannelID, "!WL: Check WL\n")
+			internal.Response(session, evt.Message.ChannelID, "!WL: add wallet address to check if you are on the white list\n")
 		} else {
+			err := internal.WhiteList(session, evt, "bhsytehekkksije6763483838923899237jjdg")
+			if err != nil {
+				log.Error(errors.New("failed to check whiteList "+" || "), err)
+			}
 		}
 		log.Info("WL")
-	}
-}
-
-func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
-	log.Info("Opening chat with user: ", userB)
-	thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
-		Name:                "MP TRADE",
-		AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
-		// Type:                disgord.ChannelTypeGuildPublicThread,
-		Type:      disgord.ChannelTypeGuildPrivateThread,
-		Invitable: true,
-	})
-	if err != nil {
-		log.Error("Error creating thread: ", err)
-		return err
-	}
-
-	err = session.Channel(thread.ID).AddThreadMember(evt.Message.Author.ID)
-	if err != nil {
-		log.Error("Error adding user A to thread: ", err)
-		return err
-	}
-
-	userID := internal.ConvertStringtoSnowflake(userB)
-
-	err = session.Channel(thread.ID).AddThreadMember(userID)
-	if err != nil {
-		log.Error("Error adding user B to thread: ", err)
-		return err
-	}
-
-	_, err = session.Channel(thread.ID).CreateMessage(&disgord.CreateMessageParams{Content: "Lets trade!"})
-	if err != nil {
-		log.Error("Error creating message: ", err)
-		return err
-	}
-
-	return nil
-}
-
-func response(session disgord.Session, channelID disgord.Snowflake, usageText string) {
-	_, err := session.Channel(channelID).CreateMessage(&disgord.CreateMessageParams{
-		Content: usageText,
-	})
-	if err != nil {
-		log.Error(err)
 	}
 }

@@ -19,7 +19,7 @@ func Test_msgHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			msgHandler(tt.args.session, tt.args.evt)
+			handler(tt.args.session, tt.args.evt)
 		})
 	}
 }
