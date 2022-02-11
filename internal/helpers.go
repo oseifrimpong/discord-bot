@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"discussion-bot/config"
-	"fmt"
 	"os"
 
 	"github.com/andersfylling/disgord"
@@ -28,8 +27,8 @@ func CreatePrivateThread(session disgord.Session, evt *disgord.MessageCreate, us
 	thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
 		Name:                "MP TRADE",
 		AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
-		Type:                disgord.ChannelTypeGuildPublicThread,
-		// Type:      disgord.ChannelTypeGuildPrivateThread,
+		// Type:                disgord.ChannelTypeGuildPublicThread,
+		Type:      disgord.ChannelTypeGuildPrivateThread,
 		Invitable: true,
 	})
 	if err != nil {
@@ -61,15 +60,15 @@ func CreatePrivateThread(session disgord.Session, evt *disgord.MessageCreate, us
 }
 
 func WhiteList(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
-	log.Info("Checking white list")
+	log.Info("Checking whitelist")
 	if addressChecker(userB) {
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "You are on the white list!"})
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "You are on the whitelist!"})
 		if err != nil {
 			log.Error("Error creating message: ", err)
 			return err
 		}
 	} else {
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "You are not on the white list!"})
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "Sorry, looks you are not on the whitelist! If you think this is an error, please create a <#941680942995623966>"})
 		if err != nil {
 			log.Error("Error creating message: ", err)
 			return err
@@ -94,6 +93,5 @@ func addressChecker(walletAddress string) bool {
 	if out.Item == nil {
 		return false // not in the database
 	}
-	fmt.Println(out.Item)
 	return true
 }
