@@ -53,7 +53,7 @@ func handler(session disgord.Session, evt *disgord.MessageCreate) {
 		if len(strs[1:]) == 0 {
 			internal.Response(session, evt.Message.ChannelID, "!WL: add wallet address to check if you are on the white list\n")
 		} else {
-			err := internal.WhiteList(session, evt, "bhsytehekkksije6763483838923899237jjdg")
+			err := internal.WhiteList(session, evt, strs[1])
 			if err != nil {
 				log.Error(errors.New("failed to check whiteList "+" || "), err)
 			}
