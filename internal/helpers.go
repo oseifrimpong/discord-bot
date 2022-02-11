@@ -68,7 +68,7 @@ func WhiteList(session disgord.Session, evt *disgord.MessageCreate, userB string
 			return err
 		}
 	} else {
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "Sorry, looks you are not on the whitelist! If you think this is an error, please create a <#941680942995623966>"})
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "Sorry, looks like you are not on the whitelist! If you think this is an error, please create a <#941680942995623966>"})
 		if err != nil {
 			log.Error("Error creating message: ", err)
 			return err
