@@ -51,7 +51,7 @@ func handler(session disgord.Session, evt *disgord.MessageCreate) {
 		}
 	case "!WL":
 		if len(strs[1:]) == 0 {
-			internal.Response(session, evt.Message.ChannelID, "!WL: add wallet address to check if you are on the white list\n")
+			internal.Response(session, evt.Message.ChannelID, "!WL add wallet address to check if you are on the white list\n")
 		} else {
 			err := internal.WhiteList(session, evt, strs[1])
 			if err != nil {
