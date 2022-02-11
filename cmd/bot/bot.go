@@ -1,14 +1,12 @@
 package bot
 
 import (
+	"discussion-bot/internal"
 	"errors"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/andersfylling/disgord"
-	"github.com/andersfylling/snowflake/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,26 +24,17 @@ func Start() {
 		LoadMembersQuietly: true,
 	})
 	defer client.Gateway().StayConnectedUntilInterrupted()
-	client.Gateway().MessageCreate(msgHandler)
+	client.Gateway().MessageCreate(handler)
 }
 
-func threadNeedsAUserName(session disgord.Session, channelID disgord.Snowflake, usageText string) {
-	_, err := session.Channel(channelID).CreateMessage(&disgord.CreateMessageParams{
-		Content: usageText,
-	})
-	if err != nil {
-		log.Error(err)
-	}
-}
-
-func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
+func handler(session disgord.Session, evt *disgord.MessageCreate) {
 	strs := strings.Split(evt.Message.Content, " ")
 	switch strs[0] {
 	case "!chat":
 		if len(strs[1:]) == 0 {
-			threadNeedsAUserName(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
+			internal.Response(session, evt.Message.ChannelID, "!chat: Start a new thread with a user.\n!leave: Leave the current thread.\n")
 		} else {
-			err := createPrivateThread(session, evt, strs[1])
+			err := internal.CreatePrivateThread(session, evt, strs[1])
 			if err != nil {
 				log.Error("Creating private thread failed", err)
 			}
@@ -60,56 +49,15 @@ func msgHandler(session disgord.Session, evt *disgord.MessageCreate) {
 		if err != nil {
 			log.Error(errors.New("failed to delete channel"+" || "), err)
 		}
+	case "!WL":
+		if len(strs[1:]) == 0 {
+			internal.Response(session, evt.Message.ChannelID, "!WL: add wallet address to check if you are on the white list\n")
+		} else {
+			err := internal.WhiteList(session, evt, strs[1])
+			if err != nil {
+				log.Error(errors.New("failed to check whiteList "+" || "), err)
+			}
+		}
+		log.Info("WL")
 	}
-}
-
-func createPrivateThread(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
-	log.Info("Opening chat with user: ", userB)
-	thread, err := session.Channel(evt.Message.ChannelID).CreateThreadNoMessage(&disgord.CreateThreadParamsNoMessage{
-		Name:                "MP TRADE",
-		AutoArchiveDuration: disgord.AutoArchiveThreadMinute,
-		// Type:                disgord.ChannelTypeGuildPublicThread,
-		Type:      disgord.ChannelTypeGuildPrivateThread,
-		Invitable: true,
-	})
-	if err != nil {
-		log.Error("Error creating thread: ", err)
-		return err
-	}
-
-	err = session.Channel(thread.ID).AddThreadMember(evt.Message.Author.ID)
-	if err != nil {
-		log.Error("Error adding user A to thread: ", err)
-		return err
-	}
-
-	userID := convertStringtoSnowflake(userB)
-
-	err = session.Channel(thread.ID).AddThreadMember(userID)
-	if err != nil {
-		log.Error("Error adding user B to thread: ", err)
-		return err
-	}
-
-	_, err = session.Channel(thread.ID).CreateMessage(&disgord.CreateMessageParams{Content: "Lets trade!"})
-	if err != nil {
-		log.Error("Error creating message: ", err)
-		return err
-	}
-
-	return nil
-}
-
-func convertStringtoSnowflake(userIDStr string) snowflake.Snowflake {
-	rx := regexp.MustCompile(`[-]?\d[\d,]*[\.]?[\d{2}]*`)
-
-	match := rx.FindAllString(userIDStr, -1)
-	var userID snowflake.Snowflake
-	for _, element := range match {
-		log.Info(element)
-		number, _ := strconv.ParseUint(element, 10, 64)
-		userID = snowflake.NewSnowflake(number)
-	}
-
-	return userID
 }
