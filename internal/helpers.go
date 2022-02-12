@@ -1,15 +1,8 @@
 package internal
 
 import (
-	"context"
-	"discussion-bot/config"
-	"os"
-
 	"github.com/andersfylling/disgord"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go/aws"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -59,39 +52,21 @@ func CreatePrivateThread(session disgord.Session, evt *disgord.MessageCreate, us
 	return nil
 }
 
-func WhiteList(session disgord.Session, evt *disgord.MessageCreate, userB string) error {
-	log.Info("Checking whitelist")
-	if addressChecker(userB) {
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "You are on the whitelist!"})
+func WhiteList(session disgord.Session, evt *disgord.MessageCreate, walletAddress string) error {
+	log.Info("Checking whitelist for %s", evt.Message.Author.Username)
+	if AddressChecker(walletAddress) {
+		// userID := strconv.Itoa(int(evt.Message.Author.ID))
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: evt.Message.Author.Username + ", you are on the whitelist!"})
 		if err != nil {
 			log.Error("Error creating message: ", err)
 			return err
 		}
 	} else {
-		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: "Sorry, looks like you are not on the whitelist! If you think this is an error, please create a <#941680942995623966>"})
+		_, err := session.Channel(evt.Message.ChannelID).CreateMessage(&disgord.CreateMessageParams{Content: evt.Message.Author.Username + "! Sorry, looks like you are not on the whitelist! If you think this is an error, please create a <#941680942995623966>"})
 		if err != nil {
 			log.Error("Error creating message: ", err)
 			return err
 		}
 	}
 	return nil
-}
-
-func addressChecker(walletAddress string) bool {
-	dbClient := config.DynamoClient()
-
-	out, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String(os.Getenv("DYNAMODB_TABLE")),
-		Key: map[string]types.AttributeValue{
-			"id": &types.AttributeValueMemberS{Value: walletAddress},
-		},
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	if out.Item == nil {
-		return false // not in the database
-	}
-	return true
 }
